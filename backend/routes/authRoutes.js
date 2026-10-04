@@ -1,7 +1,7 @@
 const express = require('express');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
-const User = require('../models/User');
+const User = require('../models/user');
 
 const router = express.Router();
 const ADMIN_ID = /^t-[a-z]{2,6}-\d{1,3}$/i; // example: t-cse-13
