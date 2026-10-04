@@ -114,3 +114,4 @@ The app runs at `http://localhost:5173`.
 
 **Devi Srinivas**
 GitHub: [Devi-Srinivas](https://github.com/Devi-Srinivas)
+Live Demo: https://lab-equipment-booking-portal.vercel.app
