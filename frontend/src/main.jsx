@@ -13,6 +13,13 @@ axios.interceptors.request.use((config) => {
     if (config.url && config.url.startsWith('http://localhost:5000')) {
         config.url = config.url.replace('http://localhost:5000', API_URL);
     }
+
+    // Send the login token to our own backend so it knows who is calling
+    const token = sessionStorage.getItem('userToken');
+    if (token && config.url && config.url.startsWith(API_URL)) {
+        config.headers = config.headers || {};
+        config.headers.Authorization = `Bearer ${token}`;
+    }
     return config;
 });
 

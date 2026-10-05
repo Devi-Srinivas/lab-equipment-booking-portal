@@ -9,7 +9,7 @@ const ADMIN_ID = /^t-[a-z]{2,6}-\d{1,3}$/i; // example: t-cse-13
 // POST /api/auth/register
 router.post('/register', async (req, res) => {
     try {
-        const { userId, name, email, department, role, password } = req.body;
+        const { userId, name, email, department, role, password, adminCode } = req.body;
 
         if (!userId || !name || !email || !password) {
             return res.status(400).json({ message: 'ID, name, email and password are required.' });
@@ -17,6 +17,15 @@ router.post('/register', async (req, res) => {
 
         const id = String(userId).trim().toLowerCase();
         const userRole = role === 'admin' ? 'admin' : 'student';
+
+        // Only people who know the secret admin code can create an admin account.
+        // If ADMIN_SECRET_CODE is not set on the server, admin registration is disabled.
+        if (userRole === 'admin') {
+            const secret = process.env.ADMIN_SECRET_CODE;
+            if (!secret || adminCode !== secret) {
+                return res.status(403).json({ message: 'Invalid admin access code.' });
+            }
+        }
 
         if (userRole === 'admin' && !ADMIN_ID.test(id)) {
             return res.status(400).json({ message: 'Admin ID should look like t-cse-13.' });

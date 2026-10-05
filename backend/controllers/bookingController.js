@@ -1,10 +1,16 @@
 const Booking = require('../models/booking');
 const Equipment = require('../models/equipment');
 
+const isAdmin = (user) => String(user.role).toLowerCase() === 'admin';
+const ownsBooking = (user, booking) => booking.studentIdNumber === user.userId;
+
 // 1. Submit a booking request (Student)
 exports.createBooking = async (req, res) => {
     try {
-        const { equipmentId, date, timeSlot, purpose, studentName, studentIdNumber } = req.body;
+        const { equipmentId, date, timeSlot, purpose } = req.body;
+        // Identity comes from the verified login, never from the request body
+        const studentName = req.user.name;
+        const studentIdNumber = req.user.userId;
 
         const equipment = await Equipment.findById(equipmentId);
         if (!equipment) {
@@ -40,8 +46,13 @@ exports.createBooking = async (req, res) => {
 exports.getBookings = async (req, res) => {
     try {
         const query = {};
-        if (req.query.student) {
-            query.studentName = req.query.student;
+        if (isAdmin(req.user)) {
+            if (req.query.student) {
+                query.studentName = req.query.student;
+            }
+        } else {
+            // A student can only ever see their own bookings
+            query.studentIdNumber = req.user.userId;
         }
 
         const bookings = await Booking.find(query).sort({ createdAt: -1 });
@@ -107,6 +118,9 @@ exports.returnEquipment = async (req, res) => {
         if (!existing) {
             return res.status(404).json({ message: 'Booking not found' });
         }
+        if (!isAdmin(req.user) && !ownsBooking(req.user, existing)) {
+            return res.status(403).json({ message: 'You can only return your own bookings' });
+        }
 
         // Atomic update: only an Accepted booking can become Returned (prevents double returns).
         // updateOne does not run the schema enum check, so this works even if the model's
@@ -136,6 +150,14 @@ exports.returnEquipment = async (req, res) => {
 //    If it was Accepted, the item goes back into stock.
 exports.cancelBookingRequest = async (req, res) => {
     try {
+        const target = await Booking.findById(req.params.id);
+        if (!target) {
+            return res.status(404).json({ message: 'Booking not found' });
+        }
+        if (!isAdmin(req.user) && !ownsBooking(req.user, target)) {
+            return res.status(403).json({ message: 'You can only cancel your own bookings' });
+        }
+
         // Atomic: only Pending / Accepted (or old records with no status) can be cancelled.
         // findOneAndUpdate with { new: false } returns the booking as it was BEFORE the change.
         const before = await Booking.findOneAndUpdate(
