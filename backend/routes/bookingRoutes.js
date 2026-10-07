@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { protect, adminOnly } = require('../middleware/authGuard');
+const { protect, adminOnly } = require('../middleware/Authguard');
 const {
     createBooking,
     getBookings,
