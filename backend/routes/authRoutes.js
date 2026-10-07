@@ -2,7 +2,7 @@ const express = require('express');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const crypto = require('crypto');
-const User = require('../models/user');
+const User = require('../models/User');
 const sendEmail = require('../utils/sendEmail');
 
 const router = express.Router();
@@ -108,12 +108,13 @@ router.post('/forgot-password', async (req, res) => {
             await user.save();
 
             const link = `${CLIENT_URL}/reset-password/${token}`;
-            await sendEmail({
+            // Not awaited: the page gets its answer at once and the email is sent in the background
+            sendEmail({
                 to: user.email,
                 subject: 'Reset your Lab Equipment Portal password',
                 text: `Hello ${user.name},\n\nOpen this link to set a new password (valid for 15 minutes):\n${link}\n\nIf you did not ask for this, ignore this email.`,
                 html: `<p>Hello ${user.name},</p><p>Click the button to set a new password. The link works for 15 minutes.</p><p><a href="${link}" style="background:#d95500;color:#fff;padding:10px 18px;border-radius:8px;text-decoration:none;font-weight:bold">Reset password</a></p><p>If you did not ask for this, ignore this email.</p>`,
-            });
+            }).catch((e) => console.error('Reset email failed:', e.message));
         }
         // Same answer whether or not the email exists (so nobody can check who is registered)
         res.json({ message: 'If an account exists for this email, a reset link has been sent.' });
