@@ -149,6 +149,8 @@ const QtyCell = ({ item }) => {
     );
 };
 
+const DEPT_OPTIONS = ['Computer Science (CSE)', 'Electrical (EEE)', 'Mechanical (MECH)', 'Electronics (ECE)'];
+
 const AdminDashboard = () => {
     const [equipmentList, setEquipmentList] = useState([]);
     const [bookings, setBookings] = useState([]);
@@ -311,17 +313,6 @@ const AdminDashboard = () => {
             alert("Failed to update booking: " + (err.response?.data?.message || err.message || "Server Error"));
         }
     };
-    // Example hints in the Add form, chosen from the admin's department
-    const EXAMPLES = [
-        { match: /\bcse\b|computer/i, name: 'Desktop Computer', id: 'c-101', lab: 'g-301' },
-        { match: /\bece\b|electronics/i, name: 'Oscilloscope', id: 'o-101', lab: 'e-201' },
-        { match: /\beee\b|electrical/i, name: 'Multimeter', id: 'm-101', lab: 'h-102' },
-        { match: /mech/i, name: 'Lathe Machine', id: 'l-101', lab: 'w-101' },
-        { match: /civil/i, name: 'Theodolite', id: 't-101', lab: 'c-101' }
-    ];
-    const example =
-        EXAMPLES.find((e) => e.match.test(user.department || '')) ||
-        { name: 'Equipment name', id: 'code-101', lab: 'Room number' };
 
     // Add New Equipment Submit
     const handleAddSubmit = async (e) => {
@@ -330,7 +321,6 @@ const AdminDashboard = () => {
             // Sending both naming conventions to match backend schemas safely
             const payload = {
                 ...formData,
-                department: user.department,
                 name: formData.equipmentName,
                 availableQuantity: formData.totalQuantity
             };
@@ -354,7 +344,6 @@ const AdminDashboard = () => {
         try {
             const payload = {
                 ...formData,
-                department: user.department,
                 name: formData.equipmentName
             };
 
@@ -426,7 +415,6 @@ const AdminDashboard = () => {
                 <div className="ad-user">
                     <span className="ad-avatar">{String(username).charAt(0).toUpperCase()}</span>
                     <span>Hi... {username}</span>
-                    {user.department && <span className="ad-chipstat">{user.department}</span>}
                     <button type="button" className="ad-logout" onClick={handleLogout}>Logout</button>
                 </div>
             </div>
@@ -459,20 +447,21 @@ const AdminDashboard = () => {
                                 <p className="ad-sub">Enter the details of the new lab equipment.</p>
                                 <form onSubmit={handleAddSubmit}>
                                     <Field label="Equipment Name">
-                                        <input className="ad-input" type="text" name="equipmentName" value={formData.equipmentName} onChange={handleChange} required placeholder={`e.g. ${example.name}`} />
+                                        <input className="ad-input" type="text" name="equipmentName" value={formData.equipmentName} onChange={handleChange} required placeholder="e.g. Projector" />
                                     </Field>
                                     <Field label="Equipment ID / Code">
-                                        <input className="ad-input" type="text" name="equipmentId" value={formData.equipmentId} onChange={handleChange} required placeholder={`e.g. ${example.id}`} />
+                                        <input className="ad-input" type="text" name="equipmentId" value={formData.equipmentId} onChange={handleChange} required placeholder="e.g. p-101" />
                                     </Field>
                                     <Field label="Department">
-                                        <input className="ad-input" type="text" value={user.department || 'Not set'} readOnly disabled />
-                                        <div style={{ fontSize: 12, color: '#8fa196', marginTop: 6 }}>You can only add equipment to your own department.</div>
+                                        <select className="ad-input" name="department" value={formData.department} onChange={handleChange}>
+                                            {DEPT_OPTIONS.map((d) => <option key={d} value={d}>{d}</option>)}
+                                        </select>
                                     </Field>
                                     <Field label="Total Quantity">
                                         <input className="ad-input" type="number" name="totalQuantity" value={formData.totalQuantity} onChange={handleChange} required placeholder="e.g. 10" />
                                     </Field>
                                     <Field label="Lab Number / Room">
-                                        <input className="ad-input" type="text" name="labNumber" value={formData.labNumber} onChange={handleChange} required placeholder={`e.g. ${example.lab}`} />
+                                        <input className="ad-input" type="text" name="labNumber" value={formData.labNumber} onChange={handleChange} required placeholder="e.g. g-301" />
                                     </Field>
                                     <button type="submit" className="ad-btn">Add Equipment</button>
                                 </form>

@@ -151,7 +151,6 @@ const Login = () => {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
     const [fieldErrors, setFieldErrors] = useState({});
-    const [showForgotInfo, setShowForgotInfo] = useState(false);
     const [capsOn, setCapsOn] = useState(false);
     const [wordIndex, setWordIndex] = useState(0);
 
@@ -217,7 +216,6 @@ const Login = () => {
     const handleSubmit = async (e) => {
         e.preventDefault();
         setError('');
-        setShowForgotInfo(false);
 
         if (!validate()) return;
 
@@ -377,16 +375,10 @@ const Login = () => {
                                     <input type="checkbox" checked={remember} onChange={(e) => setRemember(e.target.checked)} />
                                     Remember my ID
                                 </label>
-                                <button type="button" className="lp-link" onClick={() => setShowForgotInfo(!showForgotInfo)}>
+                                <Link to="/forgot-password" className="lp-link">
                                     Forgot Password?
-                                </button>
+                                </Link>
                             </div>
-
-                            {showForgotInfo && (
-                                <div style={{ marginTop: 12, padding: '10px 14px', borderRadius: 10, background: 'rgba(110,240,75,0.08)', border: '1px solid rgba(110,240,75,0.3)', color: '#cfe9d3', fontSize: 13 }}>
-                                    Please contact your lab administrator to reset your password.
-                                </div>
-                            )}
 
                             <button type="submit" className="lp-btn" disabled={loading}>
                                 {loading && <span className="lp-spinner" />}

@@ -306,7 +306,6 @@ const StudentDashboard = () => {
                 <div className="ad-user">
                     <span className="ad-avatar">{String(studentName).charAt(0).toUpperCase()}</span>
                     <span>Hi... {studentName}</span>
-                    {user.department && <span className="ad-chipstat">{user.department}</span>}
                     <button type="button" className="ad-logout" onClick={handleLogout}>Logout</button>
                 </div>
             </div>
@@ -328,10 +327,7 @@ const StudentDashboard = () => {
                     <div className="ad-center">
                         <div className="ad-card" style={{ width: '100%', maxWidth: 620 }}>
                             <h3>Request Lab Equipment Slot</h3>
-                            <p className="ad-sub">
-                                {user.department && <>Showing <strong style={{ color: GREEN }}>{user.department}</strong> equipment. </>}
-                                Pick the equipment, date and time. The lab admin will review your request.
-                            </p>
+                            <p className="ad-sub">Pick the equipment, date and time. The lab admin will review your request.</p>
                             <form onSubmit={handleSubmit}>
                                 <Field label="Select Equipment">
                                     <select className="ad-input" name="equipmentId" value={formData.equipmentId} onChange={handleChange} required>
@@ -345,9 +341,6 @@ const StudentDashboard = () => {
                                             );
                                         })}
                                     </select>
-                                    {equipmentList.length === 0 && (
-                                        <div className="ad-slot-hint">No equipment is available for your department yet.</div>
-                                    )}
                                 </Field>
 
                                 <Field label="Date">

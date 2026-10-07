@@ -7,6 +7,8 @@ import Login from './pages/Login';
 import Register from './pages/Register';
 import StudentDashboard from './pages/StudentDashboard';
 import AdminDashboard from './pages/AdminDashboard';
+import ForgotPassword from "./pages/ForgotPassword";
+import ResetPassword from "./pages/ResetPassword";
 
 function App() {
     return (
@@ -19,6 +21,8 @@ function App() {
             <Route path="/register" element={<Register />} />
             <Route path="/student-dashboard" element={<StudentDashboard />} />
             <Route path="/admin-dashboard" element={<AdminDashboard />} />
+            <Route path="/forgot-password" element={<ForgotPassword />} />
+            <Route path="/reset-password/:token" element={<ResetPassword />} />
         </Routes>
     );
 }

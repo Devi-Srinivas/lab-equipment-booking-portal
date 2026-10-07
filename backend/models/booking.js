@@ -8,6 +8,7 @@ const bookingSchema = new mongoose.Schema(
             required: true
         },
         equipmentName: { type: String, required: true },
+        department: { type: String },
         studentName: { type: String, required: true },
         studentIdNumber: { type: String, required: true },
         date: { type: String, required: true },

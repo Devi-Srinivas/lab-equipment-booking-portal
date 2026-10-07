@@ -26,7 +26,7 @@ const bookingRoutes = require('./routes/bookingRoutes');
 app.use('/api/auth', authRoutes);
 app.use('/api/equipment', equipmentRoutes);
 app.use('/api/bookings', bookingRoutes);
-
+app.use(cors({ origin: ["http://localhost:5173", "https://your-project.vercel.app"] }));
 // Base Route
 app.get('/', (req, res) => {
   res.send('Sri Vasavi Engineering College - Lab Equipment Booking API is Running');

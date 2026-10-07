@@ -4,6 +4,19 @@ const Equipment = require('../models/equipment');
 const isAdmin = (user) => String(user.role).toLowerCase() === 'admin';
 const ownsBooking = (user, booking) => booking.studentIdNumber === user.userId;
 
+// Same department? Compared as trimmed text.
+const sameDepartment = (a, b) => !!a && !!b && String(a).trim() === String(b).trim();
+
+// Does this booking's equipment belong to the admin's department?
+const bookingInAdminDepartment = async (admin, booking) => {
+    if (booking.department) {
+        return sameDepartment(booking.department, admin.department);
+    }
+    // Older bookings have no department saved, so look at the equipment
+    const equipment = await Equipment.findById(booking.equipmentId);
+    return !!equipment && sameDepartment(equipment.department, admin.department);
+};
+
 // 1. Submit a booking request (Student)
 exports.createBooking = async (req, res) => {
     try {
@@ -17,12 +30,17 @@ exports.createBooking = async (req, res) => {
             return res.status(404).json({ message: 'Equipment not found' });
         }
 
+        if (!sameDepartment(equipment.department, req.user.department)) {
+            return res.status(403).json({ message: 'This equipment belongs to another department' });
+        }
+
         if ((Number(equipment.availableQuantity) || 0) < 1) {
             return res.status(400).json({ message: 'Equipment is currently not available' });
         }
 
         const booking = await Booking.create({
             equipmentId,
+            department: equipment.department,
             // Take the name from the database, not from the browser
             equipmentName: equipment.equipmentName || equipment.name,
             studentName,
@@ -47,6 +65,15 @@ exports.getBookings = async (req, res) => {
     try {
         const query = {};
         if (isAdmin(req.user)) {
+            if (!req.user.department) {
+                return res.status(403).json({ message: 'Your account has no department assigned.' });
+            }
+            // Only bookings for equipment in the admin's own department
+            const departmentEquipmentIds = await Equipment.distinct('_id', { department: req.user.department });
+            query.$or = [
+                { department: req.user.department },
+                { equipmentId: { $in: departmentEquipmentIds } }
+            ];
             if (req.query.student) {
                 query.studentName = req.query.student;
             }
@@ -75,6 +102,10 @@ exports.updateBookingStatus = async (req, res) => {
         const booking = await Booking.findById(req.params.id);
         if (!booking) {
             return res.status(404).json({ message: 'Booking not found' });
+        }
+
+        if (!(await bookingInAdminDepartment(req.user, booking))) {
+            return res.status(403).json({ message: 'This booking belongs to another department' });
         }
 
         const previousStatus = booking.status || 'Pending';
@@ -193,10 +224,14 @@ exports.cancelBookingRequest = async (req, res) => {
 // 6. Delete a booking record permanently (admin use)
 exports.cancelBooking = async (req, res) => {
     try {
-        const booking = await Booking.findByIdAndDelete(req.params.id);
-        if (!booking) {
+        const existing = await Booking.findById(req.params.id);
+        if (!existing) {
             return res.status(404).json({ message: 'Booking not found' });
         }
+        if (!(await bookingInAdminDepartment(req.user, existing))) {
+            return res.status(403).json({ message: 'This booking belongs to another department' });
+        }
+        await Booking.findByIdAndDelete(req.params.id);
         res.status(200).json({ success: true, message: 'Booking cancelled successfully' });
     } catch (error) {
         console.error('Cancel booking error:', error);
